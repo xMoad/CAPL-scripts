@@ -1,0 +1,197 @@
+/*@!Encoding:1252*/
+
+variables
+{
+  msTimer Timer_1;
+  msTimer Timer_4;
+  msTimer Timer_5;
+  msTimer Timer_6;
+  
+  message	CAN2.iBESP2		iBESP2;	//trigger parameter
+	message CAN1.ID_201		ID_201;	//Position_target parameter frame
+  
+
+  long triggerParam;
+  long titi;
+  int comptDummy = 0;
+  int nbPik = 0;
+  
+  int Vitesse;
+  int CourseMaintien;
+  int CoursePik;
+ 
+  
+}
+
+on start
+{
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = CourseMaintien;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+}
+
+
+on message iBESP2
+{
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = CourseMaintien;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  triggerParam = this.iBESP2_pRunout;
+  write("message ID= %d is received from channel %d", this.id, this.can);
+  write("the signal value of pRunout de merde is %d", triggerParam);
+  //canSetChannelMode(2,0,0);
+  //setCanCabsMode(0,2,0,0);
+  if(triggerParam == 0)
+  {
+    canSetChannelAcc(2,24,24);
+    setTimer(Timer_1, 0);
+    
+  }
+  
+  write("the signal value of pRunout //// is %d", triggerParam);
+
+}
+
+/*
+
+on start
+{
+  //write("message ID= %d is received from channel %d", iBESP2.id, iBESP2.can);
+  write("the signal value of pRunout de merde is %d", iBESP2.iBESP2_pRunout);
+  
+  //titi = diagResponse::GetParameter("
+  titi = getMessageAttrInt( iBESP2, "iBESP2_pRunout");
+  
+  write("Start of loop - Initialization Position at 0");
+  
+  write("pRunout Value %f", getMessageAttrInt( iBESP2, "iBESP2_pRunout"));
+  
+  write("valeur de pRunout byte %f",iBESP2.iBESP2_pRunout.DefaultValue );
+  iBESP2.iBESP2_pRunout = 1;
+   write("valeur de pRunout %f", iBESP2.iBESP2_pRunout);
+ //triggerParam = getValue(iBESP2.iBESP2_pRunout);
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_1, 6000);   
+
+}
+*/
+on key's' 
+{
+  cancelTimer(Timer_1);
+  cancelTimer(Timer_4);
+  cancelTimer(Timer_5);
+  cancelTimer(Timer_6);
+  
+  write("Timer_1 - Consigne de position à 0 pendant 30s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  
+ 
+}
+
+
+  
+//Position = 0; t = 30s; V = 30mm/s
+on timer Timer_1
+{
+  write("valeur de pRunout Timer_1 %d", triggerParam);
+
+  write("Timer_1 - Consigne de position à 0 pendant 30s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  setTimer(Timer_4, 30000);
+ 
+}
+
+/*
+//position = 10000; t = 8s au max; v= 30mm/s
+on timer Timer_2
+{
+ 
+  write("Timer_2 - Consigne de position à 0 pendant 4s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+   
+  setTimer(Timer_4, 8000); 
+
+}
+*/
+
+on timer Timer_4
+{
+  write("Timer_4 - Consigne de position à 12000 pendant 330ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = CoursePik;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  setTimer(Timer_5, 330);
+}
+
+//Position = 0; t = 330ms; V = 30mm/s
+on timer Timer_5
+{
+  write("Timer_5 - Consigne de position à 0 pendant 330ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  setTimer(Timer_6, 2000);
+}
+
+
+on timer Timer_6
+{
+  write("Timer_6 - Consigne de position à 0 pendant 2s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  comptDummy =+ 1;
+  
+  if(comptDummy == nbPik)
+  {
+    setTimer(Timer_4, 0);
+  }
+  else
+  {
+   setTimer(Timer_7, 30000);
+  }
+  
+}
+
+on timer Timer_7
+{
+  write("Timer_7 - Consigne de position à 0 pendant 30s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+}
