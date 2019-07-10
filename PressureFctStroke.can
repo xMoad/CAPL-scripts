@@ -1,0 +1,185 @@
+/*@!Encoding:1252*/
+
+variables
+{
+  msTimer Timer_1;
+  msTimer Timer_2;
+  msTimer Timer_3;
+  msTimer Timer_4;
+  //msTimer Timer_5;
+  //msTimer Timer_6;
+  //msTimer Timer_7;
+  
+	message CAN1.Parker_advanced::ID_201      ID_201;	              //Position_target parameter frame
+  message	CAN2.VW_Golf_GTE::ACW_08_11       pMC1_L;              //trigger parameter
+
+  
+  long triggerParam;
+  int comptDummy = 0;
+  int nbPik = 0;
+  
+  int Vitesse = 200;
+  int CourseMaintien = 3000;
+  int CoursePik;
+  
+  int course_45bar;
+  int course_30bar;
+  int course_15bar;
+}
+
+on preStart
+{
+ 
+  
+  
+  ID_201.Task_Actuator.phys	=	1;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 0;
+  output(ID_201);
+}
+
+on message VW_Golf_GTE::ACW_08_11
+{
+  triggerParam = this.PMC1_L;
+  
+  //Target 45bar
+  while(triggerParam < 14 && triggerParam > 16)
+  {
+    triggerParam = this.PMC1_L;
+    
+    ID_201.Task_Actuator.phys	=	4;
+	  ID_201.Position_target.phys = CourseMaintien;
+	  ID_201.Application_speed.phys = Vitesse;
+    output(ID_201);
+    
+    if(triggerParam < 14)
+    {
+      CourseMaintien += 500;
+    }
+    if(triggerParam > 16)
+    {
+      CourseMaintien -= 500;
+    }
+    if(triggerParam > 14 && triggerParam < 16)
+    {
+      course_15bar = CourseMaintien;
+    }
+  }
+  
+  while(triggerParam < 28 && triggerParam > 32)
+  {
+    triggerParam = this.PMC1_L;
+    
+    ID_201.Task_Actuator.phys	=	4;
+	  ID_201.Position_target.phys = CourseMaintien;
+	  ID_201.Application_speed.phys = Vitesse;
+    output(ID_201);
+    
+    if(triggerParam < 28)
+    {
+      CourseMaintien += 500;
+    }
+    
+    if(triggerParam > 32)
+    {
+      CourseMaintien -= 500;
+    }
+    if(triggerParam > 28 && triggerParam < 32)
+    {
+      course_30bar = CourseMaintien;
+    }
+  }
+  
+  
+  while(triggerParam < 42 && triggerParam > 50)
+  {
+    triggerParam = this.PMC1_L;
+    
+    ID_201.Task_Actuator.phys	=	4;
+	  ID_201.Position_target.phys = CourseMaintien;
+	  ID_201.Application_speed.phys = Vitesse;
+    output(ID_201);
+    
+    if(triggerParam < 42)
+    {
+      CourseMaintien += 500;
+    }
+    
+    if(triggerParam > 50)
+    {
+      CourseMaintien -= 500;
+    }
+    if(triggerParam > 42 && triggerParam < 50)
+    {
+      course_45bar = CourseMaintien;
+    }
+  }
+  if( (course_15bar > 14 && course_15bar < 16) && (course_30bar > 28 && course_30bar < 32) && (course_45bar > 42 && course_45bar < 50))
+  {
+   setTimer(Timer_1, 5000);
+  }
+  write("Calculate stroke value for each pressure step");
+  
+  //canSetChannelMode(2,0,0);
+  //setCanCabsMode(0,2,0,0);  
+}
+
+
+on key's' 
+{
+  cancelTimer(Timer_1);
+  cancelTimer(Timer_2);
+  cancelTimer(Timer_3);
+  cancelTimer(Timer_4);
+  
+  write("Timer_1 - Consigne de position à 0 pendant 30s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201); 
+}
+
+  
+//wait 5s
+on timer Timer_1
+{
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_45bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+    
+  setTimer(Timer_2, 5000);
+}
+
+
+on timer Timer_2
+{
+ ID_201.Task_Actuator.phys	=	4;
+ ID_201.Position_target.phys = course_30bar;
+ ID_201.Application_speed.phys = Vitesse;
+ output(ID_201);
+ 
+ setTimer(Timer_3, 5000); 
+}
+
+on timer Timer_3
+{
+ ID_201.Task_Actuator.phys	=	4;
+ ID_201.Position_target.phys = course_15bar;
+ ID_201.Application_speed.phys = Vitesse;
+ output(ID_201);
+ 
+ setTimer(Timer_4, 5000); 
+}
+
+on timer Timer_4
+{
+ ID_201.Task_Actuator.phys	=	4;
+ ID_201.Position_target.phys = course_30bar;
+ ID_201.Application_speed.phys = Vitesse;
+ output(ID_201);
+ 
+ //setTimer(Timer_5, 5000);   
+}
+
