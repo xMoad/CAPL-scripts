@@ -7,21 +7,23 @@ variables
   msTimer Timer_3;
   msTimer Timer_4;
   //msTimer Timer_5;
-  //msTimer Timer_6;
+  msTimer Timer_6;
   //msTimer Timer_7;
   
 	message CAN1.Parker_advanced::ID_201      ID_201;	              //Position_target parameter frame
   message	CAN2.VW_Golf_GTE::ACW_08_11       pMC1_L;              //trigger parameter
 
   
-  long triggerParam;
+  float triggerParam;
   int comptDummy = 0;
   int nbPik = 0;
   
-  int Vitesse = 200;
-  int CourseMaintien = 3000;
+  int Vitesse = 50;
+  int CourseMaintien = 4000;
   int CoursePik;
   
+  int toto;
+  float titi=0;
   int course_45bar;
   int course_30bar;
   int course_15bar;
@@ -29,45 +31,65 @@ variables
 
 on preStart
 {
- 
-  
-  
   ID_201.Task_Actuator.phys	=	1;
-	ID_201.Position_target.phys = 0;
-	ID_201.Application_speed.phys = 0;
+	ID_201.Position_target.phys = CourseMaintien;
+	ID_201.Application_speed.phys = Vitesse;
   output(ID_201);
+  
+  write("ON PRESTART - INIT");
 }
 
 on message VW_Golf_GTE::ACW_08_11
 {
-  triggerParam = this.PMC1_L;
+  toto = this.PMC1_L;
+  titi = toto*0.0121607-1.0823;
+  //int().pMC1_L;
+  write("ON MESSAGE - INIT");
+  
+  write("pMC1_L value %f",(titi));
+  //triggerParam = this.PMC1_L;
+  
   
   //Target 45bar
-  while(triggerParam < 14 && triggerParam > 16)
+  if(titi < 14)
   {
-    triggerParam = this.PMC1_L;
     
-    ID_201.Task_Actuator.phys	=	4;
-	  ID_201.Position_target.phys = CourseMaintien;
-	  ID_201.Application_speed.phys = Vitesse;
-    output(ID_201);
+  write("boucle 1");
+  //settimer(Timer_6, 1000);
+  //canSetChannelAcc(2,1,1);
     
-    if(triggerParam < 14)
+  toto = this.PMC1_L;
+  titi = toto*0.0121607-1.0823;
+  write("ON MESSAGE - 15 Bar Reg - pMC1_L = %f",titi);
+    //triggerParam = this.PMC1_L;
+  if(titi < 14)
     {
       CourseMaintien += 500;
+      
+      ID_201.Task_Actuator.phys	=	4;
+	    ID_201.Position_target.phys = CourseMaintien;
+	    ID_201.Application_speed.phys = Vitesse;
+      output(ID_201);
+      
     }
-    if(triggerParam > 16)
+    if(titi > 16)
     {
       CourseMaintien -= 500;
+      
+      ID_201.Task_Actuator.phys	=	4;
+	    ID_201.Position_target.phys = CourseMaintien;
+	    ID_201.Application_speed.phys = Vitesse;
+      output(ID_201);
     }
-    if(triggerParam > 14 && triggerParam < 16)
+    if(titi > 14 && titi < 16)
     {
       course_15bar = CourseMaintien;
     }
   }
-  
+/*
   while(triggerParam < 28 && triggerParam > 32)
   {
+    write("ON MESSAGE - 30 Bar Reg");
     triggerParam = this.PMC1_L;
     
     ID_201.Task_Actuator.phys	=	4;
@@ -93,6 +115,7 @@ on message VW_Golf_GTE::ACW_08_11
   
   while(triggerParam < 42 && triggerParam > 50)
   {
+    write("ON MESSAGE - 45 Bar Reg");
     triggerParam = this.PMC1_L;
     
     ID_201.Task_Actuator.phys	=	4;
@@ -122,7 +145,11 @@ on message VW_Golf_GTE::ACW_08_11
   
   //canSetChannelMode(2,0,0);
   //setCanCabsMode(0,2,0,0);  
-}
+  
+  }
+  */
+  else{write("boucle else");}
+  }
 
 
 on key's' 
@@ -139,7 +166,16 @@ on key's'
   
   output(ID_201); 
 }
-
+on timer Timer_6
+{
+  write("timer_6");
+   ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 12000;
+	ID_201.Application_speed.phys = 50;
+  output(ID_201);
+  
+   setTimer(Timer_2, 5000);
+}
   
 //wait 5s
 on timer Timer_1
