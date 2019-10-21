@@ -1,0 +1,337 @@
+/*@!Encoding:1252*/
+
+
+variables
+{
+  msTimer Timer_1;
+  msTimer Timer_2;
+  msTimer Timer_3;
+  msTimer Timer_4;
+  msTimer Timer_5;
+  msTimer Timer_6;
+  msTimer Timer_7;
+  msTimer Timer_8;
+  msTimer Timer_9;
+  msTimer Timer_10;
+  msTimer Timer_11;
+  msTimer Timer_12;
+  //msTimer Timer_13;
+  msTimer Timer_14;
+  msTimer Timer_15;
+  msTimer Timer_16;
+  msTimer Timer_17;
+  msTimer Timer_18;
+  
+  message CAN1.Parker_advanced::ID_201      ID_201;	              //Position_target parameter frame
+  message CAN1.Parker_advanced::NMT         NMT;
+  message CAN2.VW_Golf_GTE::ACW_08_11     	pMC1_L;              //trigger parameter
+
+  float triggerParam;
+  int comptDummy = 0;
+  int Vitesse = 50;
+  int CourseMaintien = 4000;
+  int state_reg=0;
+  float pReg_45, pReg_30, pReg_15;
+  float pIndic = 0;
+  float pCalc = 0;
+  int moduloCompt = 0;
+  int course_45bar;       //10 - 8.6
+  int course_30bar;       //8 - 6.6
+  int course_15bar;       //5 - 3.6
+  int waitTime = 0;
+}
+on preStart
+{
+  ID_201.Task_Actuator.phys	=	1;
+  ID_201.Position_target.phys = 0;
+  ID_201.Application_speed.phys = 0;
+  NMT.NMT.phys = 1;
+  
+  output(NMT);
+  output(ID_201); 
+  write("ON START - ACTIVATE & INIT ACTUATOR");
+}
+on Start
+{
+  state_reg = 0;
+  ///////////////////////////////////////////////////////////////////////////////////////
+  course_45bar = 17400;       //10 - 8.6
+  course_30bar = 14400;       //8 - 6.6
+  course_15bar = 11400;   
+  waitTime = 2500;
+  //////////////////////////////////////////////////////////////////////////////////////
+  write("ON START - INIT ACTUATOR VALUE PER Pressure");
+}
+
+on message VW_Golf_GTE::ACW_08_11
+{
+  //canSetChannelAcc(2,0,0);
+  
+  write("Stroke_45 %d  -- Stroke_30 %d  -- Stroke_15 %d",course_45bar, course_30bar, course_15bar); 
+  write("ON MESSAGE - INIT  -- pReg calibration"); 
+  write("pMC1_L value = %f",pCalc);
+  write("flag reg = %d",state_reg);
+  
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+  pIndic = this.PMC1_L;
+	pCalc = pIndic*0.0121607-1.0823;
+	pReg_45 = pCalc;
+  //canSetChannelAcc(2,1,1);
+  //canSetChannelAcc(2,2,2);
+  
+	if(state_reg < 5)
+  {
+      pIndic = this.PMC1_L;
+	    pCalc = pIndic*0.0121607-1.0823;
+      pReg_45 = pCalc;
+      
+      write("pReg 45bar = %f", pReg_45);
+      if(pReg_45 <= 42){course_45bar += 200;}
+      if(pReg_45 >= 47){course_45bar -= 200;}
+      write("appel fct pReg45");canSetChannelAcc(2,1,1);setTimer(Timer_11, 1000);
+  }  
+     
+    if(state_reg < 10 && state_reg >=5)
+      {
+        pIndic = this.PMC1_L;
+	      pCalc = pIndic*0.0121607-1.0823;
+        pReg_30 = pCalc;
+      
+        write("pReg 30bar = %f", pReg_30);
+        if(pReg_30 <= 27){course_30bar += 200;}
+        if(pReg_30 >= 32){course_30bar -= 200;}
+        write("appel fct pReg30");canSetChannelAcc(2,1,1);setTimer(Timer_12, 1000);
+      }
+   
+    if(state_reg < 15 && state_reg >=10)
+    {
+      pIndic = this.PMC1_L;
+	    pCalc = pIndic*0.0121607-1.0823;
+      pReg_15 = pCalc;
+
+      write("pReg 15bar = %f",pReg_15);
+      if(pReg_15 <= 12){course_15bar += 200;}
+      if(pReg_15 >= 17){course_15bar -= 200;} 
+      write("appel fct pReg15");canSetChannelAcc(2,1,1);setTimer(Timer_16, 1000);
+    }
+    if(state_reg >= 15){canSetChannelAcc(2,1,1);setTimer(Timer_18,waitTime);}
+}
+on timer Timer_18
+{
+  write("timer_11");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  
+  setTimer(Timer_1,16000);
+}
+
+on timer Timer_1
+{
+  write("timer_1");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_45bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  
+  setTimer(Timer_2,5000);
+}
+
+on timer Timer_2
+{
+  write("timer_2");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_30bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  
+  setTimer(Timer_3, 500);
+}
+
+on timer Timer_3
+{
+  write("timer_3");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+ 
+  setTimer(Timer_4, 5000);
+}
+
+on timer Timer_4
+{
+  write("timer_4");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_15bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+ 
+  setTimer(Timer_5, 500); 
+}
+
+on timer Timer_5
+{
+  write("timer_5");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_15bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_6, 5000);
+}
+
+on timer Timer_6
+{
+  write("timer_6");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_7, 500);
+}
+
+on timer Timer_7
+{
+  write("timer_7");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_8, 2500);
+}
+
+on timer Timer_8
+{
+  write("timer_8");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = 0;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_9, 500);
+}
+
+on timer Timer_9
+{
+  write("timer_9");
+  comptDummy ++;
+  write("compt %d",comptDummy);
+  moduloCompt = comptDummy%3;
+  write("compt modulo %d",comptDummy%3);
+  
+  if(moduloCompt == 0)
+  {
+    state_reg = 0;
+    comptDummy = 0;
+    write("acess Timer10");
+    setTimer(Timer_10,10000);   //50000           //instead of waiting 50s we will wait only 20s to allow the calculation of pressure during this time
+  }
+  if(moduloCompt != 0){setTimer(Timer_1, 10000);}
+}
+
+on timer Timer_10
+{
+  write("timer_10");  
+  canSetChannelAcc(2,0,0);
+}
+
+on timer Timer_11
+{
+  write("Timer_11 - Regul 45bar");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_45bar;
+  ID_201.Application_speed.phys = Vitesse;
+  
+  output(ID_201);
+  
+  setTimer(Timer_14, 500);
+  state_reg ++;
+}
+on timer Timer_14
+{
+  canSetChannelAcc(2,0,0);
+}
+
+on timer Timer_12
+{
+  write("Timer_12 - Regul 30bar");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  
+  setTimer(Timer_15, 500);
+  state_reg++;
+}
+
+on timer Timer_15
+{
+   canSetChannelAcc(2,0,0);  
+}
+
+on timer Timer_16
+{
+  write("Timer_16 - Regul 15bar");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_15bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  setTimer(Timer_17, 500);
+  state_reg++;
+  
+}
+on timer Timer_17
+{
+  canSetChannelAcc(2,0,0);  
+}
+
+on key's' 
+{
+  cancelTimer(Timer_1);
+  cancelTimer(Timer_2);
+  cancelTimer(Timer_3);
+  cancelTimer(Timer_4);
+  cancelTimer(Timer_5);
+  cancelTimer(Timer_6);
+  cancelTimer(Timer_7);
+  cancelTimer(Timer_8);
+  cancelTimer(Timer_9);
+  cancelTimer(Timer_10);
+  cancelTimer(Timer_11);
+  cancelTimer(Timer_12);
+  
+  write("Stop script");
+  
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+}
+on stopMeasurement
+{
+  cancelTimer(Timer_1);
+  cancelTimer(Timer_2);
+  cancelTimer(Timer_3);
+  cancelTimer(Timer_4);
+  cancelTimer(Timer_5);
+  cancelTimer(Timer_6);
+  cancelTimer(Timer_7);
+  cancelTimer(Timer_8);
+  cancelTimer(Timer_9);
+  cancelTimer(Timer_10);
+  cancelTimer(Timer_11);
+  cancelTimer(Timer_12);
+  
+  write("Stop script");
+  
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = 0;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+}
+
