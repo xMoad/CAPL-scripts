@@ -1,0 +1,119 @@
+/*@!Encoding:1252*/
+includes
+{ 
+	#include "ChecksumLibrary.can"
+}
+
+variables{
+  enum FrameNames
+  {
+    //FN_VDC_A4,
+    FN_VDC_A3,
+    FN_VDC_A9,
+    FN_VDC_A12,
+    //FN_VDC_A114,
+    FN_VDC_A118,
+    //FN_VDC_A131,
+    FN_ADAS_A126,
+    FN_ADAS_A127,
+    FN_BCM_A113,
+    FN_BCM_A117,
+    //FN_ECM_A108,
+    //FN_ECM_A110,
+    //FN_ECM_A112,
+    //FN_ECM_A114,
+    //FN_HEVC_A134,
+    //FN_HEVC_R101,
+    //FN_METER_A103,
+    FN_USM_A101,
+    SIZE_OF_FrameNames
+  };
+  
+  byte aliveCt[SIZE_OF_FrameNames];
+}
+
+on message VDC_A3
+{
+  byte startbit;
+  message VDC_A3 temp;
+  temp = this;
+   
+  temp.Clock_VDC_A3 += AliveCounter(FN_VDC_A3);
+  
+  //startbit = (temp.bitcount - 1) - temp.CRC_VDC_A3.bitstart;
+  startbit = calcStartbit(0,7);
+  temp.CRC_VDC_A3 = Checksum_Renault(temp,startbit);
+  
+  output(temp);
+}  
+
+on message VDC_A9
+{
+  byte startbit;
+  message VDC_A9 temp;
+  temp = this;
+   
+  temp.VehicleSpeedClock += AliveCounter(FN_VDC_A9);
+  //startbit = (temp.bitcount - 1) - temp.VehicleSpeedCRC.bitstart;
+  startbit = calcStartbit(7,7);
+  temp.VehicleSpeedCRC = Checksum_Renault(temp,startbit);
+  
+  output(temp);
+}
+
+/* -----------------------*/
+/*   COMMON FUNCTIONS     */
+/* -----------------------*/
+
+byte calcStartbit(byte bytePosition, byte bitPosition)
+{
+  return (bytePosition*8 + bitPosition);
+}
+
+void updateMessage(message *msg)
+{
+  
+}
+
+byte AliveCounter(byte framename)
+{
+  aliveCt[framename] = ( aliveCt[framename] + 1) & 0xF;
+  return(aliveCt[framename]);
+}
+ 
+
+byte Checksum_Renault(message *msg , byte startbit)
+{
+  //Checksum setting
+  byte data[10];
+  byte i;
+  byte pdulength;
+  byte res;
+
+  data[0] = msg.id >> 8;
+  data[1] = msg.id & 0x00FF;
+  for(i = 0;i<msg.dlc;i++)
+  {
+    data[2+i] = msg.byte(i);
+  }
+  
+  pdulength = 10 ;
+  startbit += 16;
+
+  res = 0xFF;
+  
+  startbit = ( startbit / 8 );
+
+  for ( i=0; i<pdulength; i++ )
+  {
+    if( i != startbit )
+    { 
+      res = crcTable[( res ^ (data[i]))]; /* process next byte */
+    }
+  }
+  
+  res = ~res & 0xFF;
+  
+  return( res ); 
+  
+}
