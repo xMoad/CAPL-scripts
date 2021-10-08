@@ -1,0 +1,111 @@
+/*@!Encoding:1252*/
+
+variables
+{
+  msTimer Timer_1;
+  msTimer Timer_2;
+  msTimer Timer_3;
+  msTimer Timer_4;
+  msTimer Timer_5;
+  
+  //message	CAN2.iBESP1		iBESP1;	//trigger parameter
+	message CAN1.ID_201		ID_201;	//Position_target parameter frame
+  
+  int A = 0;                  //0
+  int B = 0x2710;             //10000
+  int C = 0x2EE0;             //12000
+  int temp = 0;               //Variable temp [0::9514]x10
+  
+  //int triggerParam = iBESP2.iBESP2_pRunout; 
+  int triggerEvent = 0;			  //Event Trigger
+
+  int compteur = 0;
+  
+}
+
+on key'a' 
+{
+  write("Start of loop");
+  //triggerPressure = iBESP2.iBESP2_pRunout;
+  
+  setTimer(Timer_1, 6000);   
+
+}
+
+on key's'
+{
+  cancelTimer(Timer_1);
+  cancelTimer(Timer_2);
+  cancelTimer(Timer_3);
+  cancelTimer(Timer_4);
+  cancelTimer(Timer_5);
+}
+
+//Position = 0; t = 6s; V = 30mm/s
+on timer Timer_1
+{
+  
+  write("Timer_1 - Consigne de position à 0 pendant 6s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_2, 6000);
+  
+}
+
+//position = 10000; t = 6s au max; v= 30mm/s
+on timer Timer_2
+{
+ 
+  write("Timer_2 - Consigne de position à 10000 pendant 6s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 10000;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+   
+  setTimer(Timer_3, 6500); 
+}
+
+//position = 0, t = 6.5ms; V = 30mm/s
+on timer Timer_3
+{
+  write("Timer_3 - Consigne de position à 0 pendant 6.5s");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_4, 330);
+  
+}
+
+//Position = 12000; t = 330ms; V = 30mm/s
+on timer Timer_4
+{
+  write("Timer_4 - Consigne de position à 12000 pendant 330ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 12000;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_5, 330);
+}
+
+//Position = 0; t = 330ms; V = 30mm/s
+on timer Timer_5
+{
+  write("Timer_5 - Consigne de position à 0 pendant 330ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_4, 330);
+}

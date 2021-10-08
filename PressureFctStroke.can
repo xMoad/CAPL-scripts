@@ -6,151 +6,186 @@ variables
   msTimer Timer_2;
   msTimer Timer_3;
   msTimer Timer_4;
-  //msTimer Timer_5;
+  msTimer Timer_5;
   msTimer Timer_6;
-  //msTimer Timer_7;
+  msTimer Timer_7;
+  msTimer Timer_8;
+  msTimer Timer_9;
+  msTimer Timer_10;
   
 	message CAN1.Parker_advanced::ID_201      ID_201;	              //Position_target parameter frame
   message	CAN2.VW_Golf_GTE::ACW_08_11       pMC1_L;              //trigger parameter
 
-  
   float triggerParam;
   int comptDummy = 0;
-  int nbPik = 0;
   
   int Vitesse = 50;
   int CourseMaintien = 4000;
-  int CoursePik;
   
-  int toto;
-  float titi=0;
-  int course_45bar;
-  int course_30bar;
-  int course_15bar;
+  int pIndic = 0;
+  float pCalc = 0;
+
+  int course_45bar = 10000;
+  int course_30bar = 8000;
+  int course_15bar = 5000;
 }
 
-on preStart
+on Start
 {
   ID_201.Task_Actuator.phys	=	1;
-	ID_201.Position_target.phys = CourseMaintien;
-	ID_201.Application_speed.phys = Vitesse;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 0;
   output(ID_201);
-  
-  write("ON PRESTART - INIT");
+  write("ON START - INIT ACTUATOR");
 }
 
 on message VW_Golf_GTE::ACW_08_11
 {
-  toto = this.PMC1_L;
-  titi = toto*0.0121607-1.0823;
-  //int().pMC1_L;
-  write("ON MESSAGE - INIT");
+  pIndic = this.PMC1_L;
+  pCalc = pIndic*0.0121607-1.0823;
   
-  write("pMC1_L value %f",(titi));
-  //triggerParam = this.PMC1_L;
+  write("ON MESSAGE - INIT"); 
+  write("pMC1_L value %f bar",pCalc);
   
-  
-  //Target 45bar
-  if(titi < 14)
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_45bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  if(pCalc < 45)
   {
-    
-  write("boucle 1");
-  //settimer(Timer_6, 1000);
-  //canSetChannelAcc(2,1,1);
-    
-  toto = this.PMC1_L;
-  titi = toto*0.0121607-1.0823;
-  write("ON MESSAGE - 15 Bar Reg - pMC1_L = %f",titi);
-    //triggerParam = this.PMC1_L;
-  if(titi < 14)
-    {
-      CourseMaintien += 500;
-      
-      ID_201.Task_Actuator.phys	=	4;
-	    ID_201.Position_target.phys = CourseMaintien;
-	    ID_201.Application_speed.phys = Vitesse;
-      output(ID_201);
-      
-    }
-    if(titi > 16)
-    {
-      CourseMaintien -= 500;
-      
-      ID_201.Task_Actuator.phys	=	4;
-	    ID_201.Position_target.phys = CourseMaintien;
-	    ID_201.Application_speed.phys = Vitesse;
-      output(ID_201);
-    }
-    if(titi > 14 && titi < 16)
-    {
-      course_15bar = CourseMaintien;
-    }
+    course_45bar += 500;
   }
-/*
-  while(triggerParam < 28 && triggerParam > 32)
+  else
   {
-    write("ON MESSAGE - 30 Bar Reg");
-    triggerParam = this.PMC1_L;
-    
-    ID_201.Task_Actuator.phys	=	4;
-	  ID_201.Position_target.phys = CourseMaintien;
-	  ID_201.Application_speed.phys = Vitesse;
-    output(ID_201);
-    
-    if(triggerParam < 28)
-    {
-      CourseMaintien += 500;
-    }
-    
-    if(triggerParam > 32)
-    {
-      CourseMaintien -= 500;
-    }
-    if(triggerParam > 28 && triggerParam < 32)
-    {
-      course_30bar = CourseMaintien;
-    }
+    course_45bar -= 500;
   }
   
-  
-  while(triggerParam < 42 && triggerParam > 50)
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_30bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  if(pCalc < 30)
   {
-    write("ON MESSAGE - 45 Bar Reg");
-    triggerParam = this.PMC1_L;
-    
-    ID_201.Task_Actuator.phys	=	4;
-	  ID_201.Position_target.phys = CourseMaintien;
-	  ID_201.Application_speed.phys = Vitesse;
-    output(ID_201);
-    
-    if(triggerParam < 42)
-    {
-      CourseMaintien += 500;
-    }
-    
-    if(triggerParam > 50)
-    {
-      CourseMaintien -= 500;
-    }
-    if(triggerParam > 42 && triggerParam < 50)
-    {
-      course_45bar = CourseMaintien;
-    }
+    course_30bar += 500;
   }
-  if( (course_15bar > 14 && course_15bar < 16) && (course_30bar > 28 && course_30bar < 32) && (course_45bar > 42 && course_45bar < 50))
+  else
   {
-   setTimer(Timer_1, 5000);
+    course_30bar -= 500;
   }
-  write("Calculate stroke value for each pressure step");
   
-  //canSetChannelMode(2,0,0);
-  //setCanCabsMode(0,2,0,0);  
-  
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_15bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  if(pCalc < 15)
+  {
+    course_15bar += 500;
   }
-  */
-  else{write("boucle else");}
+  else
+  {
+    course_15bar -= 500;
+  }
+  canSetChannelAcc(2,2,2);
+  setTimer(Timer_1,500);
+}
+
+on timer Timer_1
+{
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_45bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  
+  setTimer(Timer_2,5000);
+}
+
+on timer Timer_2
+{
+  write("timer_2");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = course_30bar;
+	ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+  
+  setTimer(Timer_3, 500);
+}
+
+on timer Timer_3
+{
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+ 
+  setTimer(Timer_4, 5000);
+}
+
+on timer Timer_4
+{
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_15bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201);
+ 
+  setTimer(Timer_4, 500); 
+}
+
+on timer Timer_5
+{
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_15bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_6, 5000);
+}
+
+on timer Timer_6
+{
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_7, 500);
+}
+
+on timer Timer_7
+{
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = course_30bar;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_8, 2500);
+}
+
+on timer Timer_8
+{
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = 0;
+  ID_201.Application_speed.phys = Vitesse;
+  output(ID_201); 
+  
+  setTimer(Timer_9, 500);
+}
+
+on timer Timer_9
+{
+  comptDummy ++;
+  if(comptDummy%3 == 0)
+  {
+    setTimer(Timer_10,60000);
+    resetCanEx(2);
   }
 
+  setTimer(Timer_1, 7000);
+}
+
+on timer Timer_10
+{
+  setTimer(Timer_1, 7000);
+}
 
 on key's' 
 {
@@ -158,64 +193,12 @@ on key's'
   cancelTimer(Timer_2);
   cancelTimer(Timer_3);
   cancelTimer(Timer_4);
+  cancelTimer(Timer_5);
   
-  write("Timer_1 - Consigne de position à 0 pendant 30s");
+  write("Stop script");
+  
   ID_201.Task_Actuator.phys	=	4;
 	ID_201.Position_target.phys = 0;
 	ID_201.Application_speed.phys = Vitesse;
-  
   output(ID_201); 
 }
-on timer Timer_6
-{
-  write("timer_6");
-   ID_201.Task_Actuator.phys	=	4;
-	ID_201.Position_target.phys = 12000;
-	ID_201.Application_speed.phys = 50;
-  output(ID_201);
-  
-   setTimer(Timer_2, 5000);
-}
-  
-//wait 5s
-on timer Timer_1
-{
-  ID_201.Task_Actuator.phys	=	4;
-	ID_201.Position_target.phys = course_45bar;
-	ID_201.Application_speed.phys = Vitesse;
-  output(ID_201);
-    
-  setTimer(Timer_2, 5000);
-}
-
-
-on timer Timer_2
-{
- ID_201.Task_Actuator.phys	=	4;
- ID_201.Position_target.phys = course_30bar;
- ID_201.Application_speed.phys = Vitesse;
- output(ID_201);
- 
- setTimer(Timer_3, 5000); 
-}
-
-on timer Timer_3
-{
- ID_201.Task_Actuator.phys	=	4;
- ID_201.Position_target.phys = course_15bar;
- ID_201.Application_speed.phys = Vitesse;
- output(ID_201);
- 
- setTimer(Timer_4, 5000); 
-}
-
-on timer Timer_4
-{
- ID_201.Task_Actuator.phys	=	4;
- ID_201.Position_target.phys = course_30bar;
- ID_201.Application_speed.phys = Vitesse;
- output(ID_201);
- 
- //setTimer(Timer_5, 5000);   
-}
-

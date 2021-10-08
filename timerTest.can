@@ -1,0 +1,208 @@
+/*@!Encoding:1252*/
+
+variables
+{
+  msTimer Timer_1;
+  msTimer Timer_2;
+  msTimer Timer_3;
+  msTimer Timer_4;
+  msTimer Timer_5;
+  msTimer Timer_6;
+  msTimer Timer_7;
+  msTimer Timer_8;
+  msTimer Timer_9;
+  msTimer Timer_10;
+  
+  
+  //message	CAN2.iBESP1		iBESP1;	//trigger parameter
+	message CAN1.ID_201		ID_201;	//Position_target parameter frame
+  
+  
+  int A = 0;                  //0
+  int B = 0x2710;             //10000
+  int C = 0x2EE0;             //12000
+  int temp = 0;               //Variable temp [0::9514]x10
+  
+  int triggerEvent = 0;			  //Event Trigger
+
+  int compteur = 0;
+  
+  
+}
+
+on start
+{
+  
+}
+
+on key'a' 
+{
+  write("Start of loop");
+  //triggerPressure = iBESP2.iBESP2_pRunout;
+  
+  setTimer(Timer_1, 2000);   
+ /* setTimer(Timer_2, 200);   //330
+  setTimer(Timer_3, 500);   //2000
+  setTimer(Timer_4, 1000);  //6000
+  setTimer(Timer_5, 0);     //32
+  */
+}
+
+on key'b'
+{
+  cancelTimer(Timer_1);
+  cancelTimer(Timer_2);
+  cancelTimer(Timer_3);
+  cancelTimer(Timer_4);
+  cancelTimer(Timer_5);
+}
+
+//Position = 0; t = 2000ms; V = 30mm/s
+on timer Timer_1
+{
+  
+  write("Timer_1 - Consigne de position à 0 pendant 2000ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_2, 3000);
+  
+}
+
+//Position = 10000; t = 30s; V = 30mm/s
+on timer Timer_2
+{
+  while(triggerEvent == 0)
+  {
+    write("Timer_2 - Passage de 0 à 10000 en position pendant 270ms");
+    ID_201.Task_Actuator.phys	=	4;
+    ID_201.Position_target.phys = 10000;
+    ID_201.Application_speed.phys = 30;
+ 
+    output(ID_201);
+  
+    setTimer(Timer_3, 6000);
+
+  }
+  
+ 
+    write("Timer_2 - Passage de 0 à 10000 en position pendant 270ms");
+    ID_201.Task_Actuator.phys	=	4;
+    ID_201.Position_target.phys = 0;
+    ID_201.Application_speed.phys = 30;
+ 
+    output(ID_201);
+  
+    setTimer(Timer_3, 6000);
+  
+}
+
+//Position = 10000; t = 6000ms; V = 30mm/s
+on timer Timer_3
+{
+ write("Timer_3 - on maintien la consigne de position à 10000 pendant 6000ms"); 
+ ID_201.Task_Actuator.phys	=	4;
+ ID_201.Position_target.phys = 10000;
+ ID_201.Application_speed.phys = 30;
+ 
+ output(ID_201);
+  
+ setTimer(Timer_4, 270);
+}
+
+on timer Timer_4
+{
+ write("Timer_4 - Passage de la consigne de position de 10000 à 0 pendant 270ms");  
+ ID_201.Task_Actuator.phys	=	4;
+ ID_201.Position_target.phys = 0;
+ ID_201.Application_speed.phys = 30;
+ 
+ output(ID_201);
+  
+ setTimer(Timer_5, 30000);
+}
+
+on timer Timer_5
+{
+  write("Timer_5 - consigne de position à 0 pendant 30000ms");
+  ID_201.Task_Actuator.phys	=	4;
+  ID_201.Position_target.phys = 0;
+  ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  setTimer(Timer_6, 330);
+}
+
+on timer Timer_6
+{
+  write("Timer_6 - passage de 0 à 12000 pendant 330ms ==> Pike_1");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 12000;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  //compteur +=1;
+  
+  setTimer(Timer_7, 330);
+}
+
+on timer Timer_7
+{
+  write("Timer_7 - consigne à 0 pendant 330ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  //compteur +=1;
+  
+  setTimer(Timer_8, 2000);
+}
+
+on timer Timer_8
+{
+  write("Timer_8 - consigne à 0 pendant 2000ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  //compteur +=1;
+  
+  setTimer(Timer_9, 330);
+}
+
+on timer Timer_9
+{
+  write("Timer_9 - Passage de 0 à 12000 pendant 330ms ==> Pike 2");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 12000;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  //compteur +=1;
+  
+  setTimer(Timer_10, 330);
+}
+
+on timer Timer_10
+{
+  write("Timer_10 - Passage de 12000 à 0 pendant 330ms");
+  ID_201.Task_Actuator.phys	=	4;
+	ID_201.Position_target.phys = 0;
+	ID_201.Application_speed.phys = 30;
+  
+  output(ID_201);
+  
+  //compteur +=1;
+  
+  //setTimer(Timer_9, 330);
+}
